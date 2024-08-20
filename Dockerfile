@@ -1,20 +1,23 @@
-# Use the official Rust image as a builder
-FROM rust:1.72 as builder
+# Use the official Rust image as a base
+FROM rust:1.72 AS builder
 
 # Set the working directory
 WORKDIR /app
 
-# Install musl-tools for static linking
+# Install musl-tools to build statically linked binaries
 RUN apt-get update && apt-get install -y musl-tools
+
+# Set the Rust target to musl
+RUN rustup target add x86_64-unknown-linux-musl
 
 # Copy the project files into the Docker container
 COPY . .
 
-# Build the Rust project for the musl target
-RUN cargo build --release --target=x86_64-unknown-linux-musl
+# Build the Rust project for release with musl target
+RUN cargo build --release --target x86_64-unknown-linux-musl
 
 # Use a minimal base image for the final container
-FROM alpine:3.18
+FROM debian:buster-slim
 
 # Set the working directory
 WORKDIR /app
